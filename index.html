@@ -135,48 +135,130 @@
       let categoriaAtivaId = null;
 
       async function carregarCategorias() {
-        try {
-          const response = await fetch(`${API_URL}/categorias`);
-          categoriasData = await responses.json();
-          renderizarBotoesCategorias();
-          //seleciona a 1º categoria automatico
-          if (categoriaData.length > 0) {
-            selecionarCategorias(categoriasData[0].nome);
-          }
-        }catch (error) {
-          console.error('Erro ao carregar categorias:', error);
-          navCategorias.innerHTML = '<p class="text-red-500">Erro ao carregar menu </p>';
+            try {
+                const response = await fetch(${API_URL}/categorias);
+                categoriasData = await response.json();
+                renderizarBotoesCategorias();
+                //seleciona a 1ª categoria automatico
+                if (categoriasData.length > 0) {
+                    selecionarCategoria(categoriasData[0].id, categoriasData[0].nome);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar categorias:', error);
+                navCategorias.innerHTML = '<p class="text-red-500">Erro ao carregar menu.</p>';
+            }
         }
-      }
 
 
-      //função para renderização botões de menu
-      function renderizarBotoesCategorias(){
-        navCategorias.innerHTML = '';
-        categoriaData.forEach(cat => {
-          const btn = document.createElement('button');
-            btn.className =`snap-start px-4 py-4 py-1 rounded-full font-bold 
-            text-sm transition-all duration-150 cursor-pointer flex-shrink-0
-            btn-cat`;
-          btn.innerText = cat.nome;
-          btn.onclick = () => selectionCategorias(cat.id, cat.none);
-          btn.dataset.id = cat.id;
-          navCategorias.id = cat.id;
+        //função para renderizar botões de menu
+        function renderizarBotoesCategorias() {
+            navCategorias.innerHTML = '';
+            categoriasData.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `snap-start px-4 py-4 py-1 rounded-full font-bold 
+                text-sm transition-all duration-150 cursor-pointer flex-shrink-0 
+                btn-cat`;
+                btn.innerText = cat.nome;
+                btn.onclick = () => selecionarCategoria(cat.id, cat.nome);
+                btn.dataset.id = cat.id;
+                navCategorias.appendChild(btn);
+            });
+        }
 
-        });
-      }
+        //função para mudar a categoria
+        async function selecionarCategoria(id, nome) {
+            categoriaAtivaId = id;
+            const botoes = document.querySelectorAll('.btn-cat');
+            botoes.forEach(btn => {
+                if (parseInt(btn.dataset.id) === id) {
+                    btn.classList.add('bg-primary', 'text-white');
+                    btn.classList.remove('bg-[#ebebeb]', 'text-dark');
+                } else {
+                    btn.classList.remove('bg-primary', 'text-white');
+                    btn.classList.add('bg-[#ebebeb]', 'text-dark');
+                }
+            });
+            carregarProdutos(id);
+        }
 
-      //função para mudar a categoria
-      async function selecionarCategoria(id, nome) {
-        categoriaAtivaId = id;
-        categoriaTitulo.innerText = nome;
-        const botoes = document.querySelectorAll('.btn-cat');
-        botoes.forEach(btn => {
-          if (parseInt(btn.datasrt.id) === id{
-            btn.classList.add('bg-primary', 'text-white');
-            btn.classList.remove('bg-primary')
-          })
-        })
+        async function carregarProdutos(categoriaId) {
+            listaProdutos.innerHTML = `
+        <div class="col-span-2 flex justify-center py-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+    `;
+
+            try {
+                const response = await fetch(${API_URL}/produtos);
+                const produtos = await response.json();
+                
+
+                // filtra somente os produtos da categoria clicada
+                const produtosFiltrados = produtos.filter(produto => {
+                    return Number(produto.categorias_id) === Number(categoriaId)
+                        || Number(produto.categoriasId) === Number(categoriaId)
+                        || Number(produto.categorias?.id) === Number(categoriaId);
+                });
+
+                renderizarProdutos(produtosFiltrados);
+            } catch (error) {
+                console.error("Erro ao carregar produtos:", error);
+                listaProdutos.innerHTML = '<p class="col-span-2 text-red-500">Erro ao carregar produtos.</p>';
+            }
+        }
+
+        function renderizarProdutos(produtos) {
+            listaProdutos.innerHTML = '';
+
+            if (produtos.length === 0) {
+                listaProdutos.innerHTML = '<p class="col-span-2 text-gray-500">Nenhum produto encontrado.</p>';
+                return;
+            }
+            produtos.forEach(p => {
+                const precoFormatado = p.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                const imgSource = (p.imagem && p.imagem.startsWith('http')) ? p.imagem : ./img/${p.imagem || 'logo.png'};
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-[20px] p-3  shadow-sm border border-gray-100 relative flex flex-col hover-col hover:shadow-md transition-shadow group";
+                card.innerHTML = `
+                    <div class="absolute inset-0 z-0 cursor-pointer" onclick="abrirModalDetalhes('${p.nome}', ${p.preco}, '${p.descricao || ''}', '${imgSource}', '${p.id}')"></div>
+                    <img src="${imgSource}" alt="${p.nome}" class="w-full h-24 object-contain mb-2 mt-2 transition-transform duration-300 drop-shadow-md group-hover:scale-105 pointer-events-none relative z-10" onerror="this.onerror=null; this.src='./img/logo.png'">
+                   <div class="text-left w- full mt-auto relative z-10 pointer-events-none">
+                    <h4 class="font-bold text-dark text-sm leading-tight">${p.nome}</h4>
+                    <p class="text-primary font-bold text-sm mt-2">
+                     ${p.preco.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                })}
+                </p>
+                </div>
+                <button onclick="adicionarItem('${p.id}', '${p.nome}', ${p.preco})" class="w-full bg-primary text-white py-2 rounded-xl text-xs  font-bold mt-3 shadow-md hover:bg-red-700 active:scale-95 transition-all z-10 relative">
+                Adicinar
+                </button>
+                    `;
+                listaProdutos.appendChild(card);
+            })
+
+        }
+
+
+
+
+
+        carregarCategorias();
+
+  function carregarDados() {
+    fetch(${API_URL})
+      .then(res => res.json())
+      .then(data => {
+        // Esconde o texto
+        document.getElementById('categoria-titulo').style.display = 'none';
+
+        // ou remove completamente:
+        // document.getElementById('categoria-titulo').remove();
+      });
+  }
+
+  carregarDados();
 
     </script>
 
