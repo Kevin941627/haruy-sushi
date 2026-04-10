@@ -127,16 +127,16 @@
 
 
     <script>
-      const API_URL = 'https://aula-7-backend-b-sico-vercel-rynu-ajiaq1run.vercel.app/api'
+      const API_URL = 'https://aula-7-backend-b-sico-vercel-rynu.vercel.app/api'
       const navCategorias = document.getElementById('nav-categorias');
       const listaProdutos = document.getElementById('lista-produtos');
       const categoriaTitulo = document.getElementById('categoria-titulo');
       let catefiriasData = [];
       let categoriaAtivaId = null;
 
-      async function carregarCategorias() {
+       async function carregarCategorias() {
             try {
-                const response = await fetch(${API_URL}/categorias);
+                const response = await fetch(`${API_URL}/categorias`);
                 categoriasData = await response.json();
                 renderizarBotoesCategorias();
                 //seleciona a 1ª categoria automatico
@@ -189,15 +189,15 @@
     `;
 
             try {
-                const response = await fetch(${API_URL}/produtos);
+                const response = await fetch(`${API_URL}/produtos`);
                 const produtos = await response.json();
                 
 
                 // filtra somente os produtos da categoria clicada
                 const produtosFiltrados = produtos.filter(produto => {
-                    return Number(produto.categorias_id) === Number(categoriaId)
-                        || Number(produto.categoriasId) === Number(categoriaId)
-                        || Number(produto.categorias?.id) === Number(categoriaId);
+                    return Number(produto.categoria_id) === Number(categoriaId)
+                        || Number(produto.categoriaId) === Number(categoriaId)
+                        || Number(produto.categoria?.id) === Number(categoriaId);
                 });
 
                 renderizarProdutos(produtosFiltrados);
@@ -216,7 +216,7 @@
             }
             produtos.forEach(p => {
                 const precoFormatado = p.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                const imgSource = (p.imagem && p.imagem.startsWith('http')) ? p.imagem : ./img/${p.imagem || 'logo.png'};
+                const imgSource = (p.imagem && p.imagem.startsWith('http')) ? p.imagem : `./img/${p.imagem || 'logo.png'}`;
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-[20px] p-3  shadow-sm border border-gray-100 relative flex flex-col hover-col hover:shadow-md transition-shadow group";
                 card.innerHTML = `
@@ -247,7 +247,7 @@
         carregarCategorias();
 
   function carregarDados() {
-    fetch(${API_URL})
+    fetch(`${API_URL}`)
       .then(res => res.json())
       .then(data => {
         // Esconde o texto
@@ -261,6 +261,7 @@
   carregarDados();
 
     </script>
+
 
 
 
